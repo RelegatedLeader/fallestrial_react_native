@@ -11,6 +11,7 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   FlatList,
+  ScrollView, // Import ScrollView
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,7 +19,6 @@ import MeScreen from './MeScreen';
 import Friends_Screen from './Friends';
 import Settings_Screen from './Settings_Screen';
 import { useNavigation } from '@react-navigation/native';
-import App from './App';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
@@ -35,7 +35,7 @@ export default function MainScreen(props) {
 
   const [posts, setPosts] = useState([]); // Array to store user posts
   const [newPost, setNewPost] = useState(''); // Input for new post
-  const [selectedImage, setSelectedImage] = useState(null); // Selected image
+  const [selectedImages, setSelectedImages] = useState([]); // Selected images
 
   const navigation = useNavigation();
 
@@ -91,8 +91,8 @@ export default function MainScreen(props) {
       aspect: [3, 3],
     });
 
-    if (!result.canceled) {
-      setSelectedImage(result.uri);
+    if (!result.cancelled) {
+      setSelectedImages([...selectedImages, result.uri]);
     }
   };
 
@@ -181,8 +181,9 @@ export default function MainScreen(props) {
                 setNewPost={setNewPost}
                 posts={posts}
                 handleDeletePost={handleDeletePost}
-                selectedImage={selectedImage}
+                selectedImages={selectedImages} // Pass selectedImages as a prop
                 selectImage={selectImage}
+                setSelectedImages={setSelectedImages} // Pass setSelectedImages as a prop
                 navigation={navigation}
               />
             )}
@@ -215,10 +216,30 @@ function HomeScreen({
   setNewPost,
   posts,
   handleDeletePost,
-  selectedImage,
+  selectedImages,
   selectImage,
   navigation,
+  setSelectedImages,
 }) {
+  // State to keep track of the double-tap count
+  const [doubleTapCount, setDoubleTapCount] = useState(0);
+
+  // Function to handle double-tap on the image
+  const handleDoubleTap = () => {
+    // Increment the double-tap count
+    setDoubleTapCount(doubleTapCount + 1);
+
+    // If the count is 2, reset the count and make the image disappear
+    if (doubleTapCount === 1) {
+      setDoubleTapCount(0);
+      setSelectedImages([]);
+    }
+
+    // Vibrate to provide feedback
+    Vibration.vibrate(35);
+  };
+
+  //logging out
   const logOut = async () => {
     await AsyncStorage.setItem('isLoggedIn', 'false');
     navigation.navigate('Welcome'); // Navigate back to the Welcome screen
@@ -226,7 +247,7 @@ function HomeScreen({
   };
 
   return (
-    <View style={{ backgroundColor: '#0c345c', flex: 1 }}>
+    <ScrollView style={{ backgroundColor: '#0c345c', flex: 1 }}>
       <Text
         style={{
           fontSize: 24,
@@ -253,12 +274,13 @@ function HomeScreen({
       </TouchableOpacity>
 
       <Text style={{ color: 'white', fontSize: 24, textAlign: 'center' }}>
-        {' '}
         Your posts!
       </Text>
-      {selectedImage && (
-        <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
-      )}
+      {selectedImages.map((image, index) => (
+        <TouchableOpacity key={index} onPress={handleDoubleTap}>
+          <Image source={{ uri: image }} style={styles.selectedImage} />
+        </TouchableOpacity>
+      ))}
       <FlatList
         data={posts}
         keyExtractor={(item) => item.timestamp.toString()}
@@ -277,7 +299,7 @@ function HomeScreen({
       <TouchableOpacity onPress={() => logOut()}>
         <Text style={styles.logOutText}>Log Out</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -320,7 +342,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: width / 2, ///the width has to be somewhere within this file, this is pretty cool
+    width: width / 2,
     height: '100%',
     backgroundColor: '#333',
     padding: 10,
