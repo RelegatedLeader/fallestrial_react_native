@@ -224,16 +224,12 @@ function HomeScreen({
   // State to keep track of the double-tap count
   const [doubleTapCount, setDoubleTapCount] = useState(0);
 
-  // Function to handle double-tap on the image
-  const handleDoubleTap = () => {
-    // Increment the double-tap count
-    setDoubleTapCount(doubleTapCount + 1);
-
-    // If the count is 2, reset the count and make the image disappear
-    if (doubleTapCount === 1) {
-      setDoubleTapCount(0);
-      setSelectedImages([]);
-    }
+  // Function to handle double-tap on an image
+  const handleDoubleTap = (index) => {
+    // Remove the image at the specified index
+    const updatedImages = [...selectedImages];
+    updatedImages.splice(index, 1);
+    setSelectedImages(updatedImages);
 
     // Vibrate to provide feedback
     Vibration.vibrate(35);
@@ -296,9 +292,6 @@ function HomeScreen({
           </View>
         )}
       />
-      <TouchableOpacity onPress={() => logOut()}>
-        <Text style={styles.logOutText}>Log Out</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }

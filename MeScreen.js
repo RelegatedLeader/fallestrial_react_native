@@ -1,126 +1,267 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
-  Image,
-  StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  Vibration,
-  Animated,
-  Dimensions,
-  TouchableWithoutFeedback,
-  FlatList,
+  StyleSheet,
   ScrollView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createStackNavigator } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+const Stack = createStackNavigator();
 
-//
-export default function MeScreen() {
+const ChoicesScreen = ({ route }) => {
+  const { selectedChoices } = route.params;
+  const navigation = useNavigation();
   return (
-    <View style={styles.layout}>
-      <ScrollView>
-        <Text style={{ color: 'white', fontSize: 32, textAlign: 'center' }}>
-          @ME
-        </Text>
+    <ScrollView contentContainerStyle={styles.layout}>
+      <Text style={styles.title}>Your Choices</Text>
+      {selectedChoices.map((choice) => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Crypto')}
+          key={choice}
+          style={styles.choiceButton}
+        >
+          <Text style={styles.choiceButtonText}>{choice}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
+};
 
+export default function MeScreen({ navigation }) {
+  const [selectedChoices, setSelectedChoices] = useState([]);
+  const [choicesLocked, setChoicesLocked] = useState(false);
+  const [firstTimeUser, setFirstTimeUser] = useState(true);
+  const [notificationVisible, setNotificationVisible] = useState(true);
 
-        
-      </ScrollView>
-    </View>
+  useEffect(() => {
+    // Check if the choices are locked in AsyncStorage
+    checkLockStatus();
+  }, []);
+
+  const contentChoices = [
+    'Crypto',
+    'Social Media',
+    'News + Interaction',
+    'Stocks',
+    'AI',
+    'Web3 Gaming',
+    'Therapies',
+    'Education',
+    'MeetUps',
+    'Literature',
+  ];
+
+  const toggleChoice = (choice) => {
+    if (!choicesLocked && firstTimeUser) {
+      if (selectedChoices.includes(choice)) {
+        // If the choice is already selected, remove it from the list
+        setSelectedChoices(selectedChoices.filter((item) => item !== choice));
+      } else if (selectedChoices.length < 5) {
+        // If less than 5 choices are selected, add the choice
+        setSelectedChoices([...selectedChoices, choice]);
+      }
+    }
+  };
+
+  const checkLockStatus = async () => {
+    try {
+      const isLocked = await AsyncStorage.getItem('choicesLocked');
+      if (isLocked === 'true') {
+        setChoicesLocked(true);
+        setFirstTimeUser(false);
+      }
+    } catch (error) {
+      console.error('Error checking lock status:', error);
+    }
+  };
+
+  const lockChoices = async () => {
+    try {
+      // Lock the choices and save the lock status in AsyncStorage
+      await AsyncStorage.setItem('choicesLocked', 'true');
+      setChoicesLocked(true);
+      setFirstTimeUser(false);
+    } catch (error) {
+      console.error('Error locking choices:', error);
+    }
+  };
+
+  const resetChoices = () => {
+    // Reset the choices and unlock them
+    setChoicesLocked(false);
+    setFirstTimeUser(true);
+    setSelectedChoices([]);
+    setNotificationVisible(true);
+  };
+
+  const handleNotif1 = () => {
+    // Handle your notification logic here
+    // For now, let's just hide the notification when the button is clicked
+    setNotificationVisible(false);
+  };
+
+  const handleChoiceNavigation = (choice) => {
+    // Navigate to the Choices screen with selected choices
+    if (navigation) {
+      navigation.navigate('Choices', { selectedChoices });
+    }
+  };
+
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name='Me' options={{ headerShown: false }}>
+        {() => (
+          <ScrollView contentContainerStyle={styles.layout}>
+            <Text style={styles.title}>@ME</Text>
+            {firstTimeUser ? (
+              <View>
+                <Text style={styles.selectionCount}>
+                  {selectedChoices.length}/5 options selected
+                </Text>
+                {contentChoices.map((choice) => (
+                  <TouchableOpacity
+                    key={choice}
+                    style={[
+                      styles.choice,
+                      selectedChoices.includes(choice) && styles.selectedChoice,
+                    ]}
+                    onPress={() => toggleChoice(choice)}
+                  >
+                    <Text style={styles.choiceText}>{choice}</Text>
+                  </TouchableOpacity>
+                ))}
+                {selectedChoices.length === 5 && (
+                  <TouchableOpacity
+                    style={styles.lockButton}
+                    onPress={lockChoices}
+                  >
+                    <Text style={styles.lockButtonText}>Lock Choices</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : (
+              <View>
+                <TouchableOpacity
+                  onPress={handleNotif1}
+                  style={[
+                    styles.notification,
+                    !notificationVisible && { display: 'none' },
+                  ]}
+                >
+                  <Text style={styles.notificationText}>
+                    Choices are locked for now. You can't change them until
+                    months have passed.
+                  </Text>
+                </TouchableOpacity>
+                {choicesLocked && (
+                  <TouchableOpacity
+                    style={styles.resetButton}
+                    onPress={resetChoices}
+                  >
+                    <Text style={styles.resetButtonText}>Reset Choices</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+            <View style={styles.choicesList}>
+              {selectedChoices.map((choice) => (
+                <TouchableOpacity
+                  key={choice}
+                  onPress={() => handleChoiceNavigation(choice)}
+                >
+                  <Text style={styles.selectedChoiceText}>{choice}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name='Choices' component={ChoicesScreen} />
+    </Stack.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
   layout: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#0a355a',
+    padding: 16,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
+  title: {
+    color: 'white',
+    fontSize: 32,
+    textAlign: 'center',
   },
-  logo: {
-    width: '50%',
-    height: 40,
+  selectionCount: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
   },
-  searchIcon: {
-    width: 30,
-    height: 30,
-  },
-  menuIcon: {
-    width: 30,
-    height: 30,
-  },
-  menuContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    //width: width / 2,
-    height: '100%',
-    backgroundColor: '#333',
-    padding: 10,
-    zIndex: 1,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  input: {
-    flex: 1,
-    height: 40,
-    borderColor: 'white',
-    borderWidth: 1,
-    backgroundColor: 'white',
-    marginBottom: 10,
-    padding: 5,
-    borderRadius: 5,
-    color: 'black',
-    marginTop: 10,
-    marginRight: 10,
-  },
-  postButton: {
+  choice: {
     backgroundColor: '#22becf',
     padding: 10,
     borderRadius: 5,
-  },
-  postButtonText: {
-    color: 'white',
-  },
-  post: {
-    flexDirection: 'row',
+    marginVertical: 8,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'white',
-    margin: 10,
-    padding: 10,
-    borderRadius: 5,
   },
-  postText: {
-    flex: 1,
+  selectedChoice: {
+    backgroundColor: '#15a2cc',
   },
-  deleteButton: {
-    backgroundColor: 'red',
-    padding: 5,
-    borderRadius: 5,
-  },
-  deleteButtonText: {
+  choiceText: {
     color: 'white',
   },
-  selectedImage: {
-    width: 500,
-    height: 500,
-    alignContent: 'center',
-    display: 'flex',
-  },
-  selectImageButton: {
-    backgroundColor: '#22becf',
+  lockButton: {
+    backgroundColor: '#15a2cc',
     padding: 10,
     borderRadius: 5,
-    marginTop: 10,
+    marginVertical: 16,
+    alignItems: 'center',
   },
-  selectImageButtonText: {
+  lockButtonText: {
+    color: 'white',
+  },
+  notification: {
+    backgroundColor: 'red', // Change to yellow if not visible
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 16,
+    alignItems: 'center',
+  },
+  notificationText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  choicesList: {
+    marginTop: 16,
+  },
+  selectedChoiceText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 8,
+  },
+  choiceButton: {
+    backgroundColor: 'green', // Choose your preferred background color
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 8,
+    alignItems: 'center',
+  },
+  choiceButtonText: {
+    color: 'white',
+  },
+  resetButton: {
+    backgroundColor: 'orange',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 16,
+    alignItems: 'center',
+  },
+  resetButtonText: {
     color: 'white',
   },
 });
