@@ -9,17 +9,31 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
+import Crypto from './Me_pages/Crypto';
+import Gaming from './Me_pages/Gaming';
+import Education from './Me_pages/Education';
+import Literature from './Me_pages/Literature';
+import SocialMedia from './Me_pages/SocialMedia';
+import Stocks from './Me_pages/Stocks';
+import NewsPage from './Me_pages/NewsPage';
+import Therapeutics from './Me_pages/Therapeutics';
+import AI from './Me_pages/AIPage';
+import Meetups from './Me_pages/Meetups';
+
+//i kind of want a small section below the Me page user options....
+
 const Stack = createStackNavigator();
 
 const ChoicesScreen = ({ route }) => {
   const { selectedChoices } = route.params;
   const navigation = useNavigation();
+
   return (
     <ScrollView contentContainerStyle={styles.layout}>
       <Text style={styles.title}>Your Choices</Text>
       {selectedChoices.map((choice) => (
         <TouchableOpacity
-          onPress={() => navigation.navigate('Crypto')}
+          onPress={() => navigation.navigate(choice)}
           key={choice}
           style={styles.choiceButton}
         >
@@ -30,11 +44,12 @@ const ChoicesScreen = ({ route }) => {
   );
 };
 
-export default function MeScreen({ navigation }) {
+export default function MeScreen() {
   const [selectedChoices, setSelectedChoices] = useState([]);
   const [choicesLocked, setChoicesLocked] = useState(false);
   const [firstTimeUser, setFirstTimeUser] = useState(true);
   const [notificationVisible, setNotificationVisible] = useState(true);
+  const navigation = useNavigation(); // Add this line
 
   useEffect(() => {
     // Check if the choices are locked in AsyncStorage
@@ -44,13 +59,13 @@ export default function MeScreen({ navigation }) {
   const contentChoices = [
     'Crypto',
     'Social Media',
-    'News + Interaction',
+    'News Page',
     'Stocks',
     'AI',
-    'Web3 Gaming',
-    'Therapies',
+    'Gaming',
+    'Therapeutics',
     'Education',
-    'MeetUps',
+    'Meetups',
     'Literature',
   ];
 
@@ -104,9 +119,41 @@ export default function MeScreen({ navigation }) {
   };
 
   const handleChoiceNavigation = (choice) => {
-    // Navigate to the Choices screen with selected choices
-    if (navigation) {
-      navigation.navigate('Choices', { selectedChoices });
+    // Navigate to the corresponding component based on the choice
+    switch (choice) {
+      case 'Crypto':
+        navigation.navigate('Crypto'); // Navigate to the Crypto component
+        break;
+      case 'Social Media':
+        navigation.navigate('SocialMedia');
+        break;
+      case 'News Page':
+        navigation.navigate('NewsPage');
+        break;
+      case 'Stocks':
+        navigation.navigate('Stocks');
+        break;
+      case 'AI':
+        navigation.navigate('AI');
+        break;
+      case 'Gaming':
+        navigation.navigate('Gaming');
+        break;
+      case 'Therapeutics':
+        navigation.navigate('Therapeutics');
+        break;
+      case 'Education':
+        navigation.navigate('Education');
+        break;
+      case 'Meetups':
+        navigation.navigate('Meetups');
+        break;
+      case 'Literature':
+        navigation.navigate('Literature');
+        break;
+      // Add cases for other choices if needed
+      default:
+        break;
     }
   };
 
@@ -171,8 +218,9 @@ export default function MeScreen({ navigation }) {
                 <TouchableOpacity
                   key={choice}
                   onPress={() => handleChoiceNavigation(choice)}
+                  style={styles.choiceButton}
                 >
-                  <Text style={styles.selectedChoiceText}>{choice}</Text>
+                  <Text style={styles.choiceButtonText}>{choice}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -180,6 +228,18 @@ export default function MeScreen({ navigation }) {
         )}
       </Stack.Screen>
       <Stack.Screen name='Choices' component={ChoicesScreen} />
+      <Stack.Screen name='Crypto' component={Crypto} />
+      <Stack.Screen name='AI' component={AI} />
+      <Stack.Screen name='NewsPage' component={NewsPage} />
+      <Stack.Screen name='Literature' component={Literature} />
+      <Stack.Screen name='Stocks' component={Stocks} />
+      <Stack.Screen name='Gaming' component={Gaming} />
+      <Stack.Screen name='Therapeutics' component={Therapeutics} />
+      <Stack.Screen name='Education' component={Education} />
+      <Stack.Screen name='Meetups' component={Meetups} />
+      <Stack.Screen name='SocialMedia' component={SocialMedia} />
+
+      {/* Add screens for other choices if needed */}
     </Stack.Navigator>
   );
 }
@@ -214,7 +274,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   lockButton: {
-    backgroundColor: '#15a2cc',
+    backgroundColor: 'black',
     padding: 10,
     borderRadius: 5,
     marginVertical: 16,
