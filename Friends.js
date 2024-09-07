@@ -22,6 +22,10 @@ export default function Friends_Screen() {
         <Text style={{ color: 'white', fontSize: 32, textAlign: 'center' }}>
           Friends
         </Text>
+
+        <Text style={{ color: 'gold', fontSize: 20, textAlign: 'center' }}>
+          See what your friends are up to!
+        </Text>
       </ScrollView>
     </View>
   );

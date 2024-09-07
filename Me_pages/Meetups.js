@@ -1,10 +1,37 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { WebView } from 'react-native-webview';
 
-export default function Meetups() {
+const Meetups = () => {
   return (
-    <View>
-      <Text>You are that of what you create.</Text>
+    <View style={styles.container}>
+      <Text style={styles.heading}></Text>
+      <WebView
+        source={{ uri: 'https://www.Meetup.com' }}
+        style={styles.webview}
+        bounces={false}
+        scrollEnabled={false}
+        androidHardwareAccelerationDisabled={false}
+        contentMode={'mobile'}
+        cacheMode={'LOAD_CACHE_ELSE_NETWORK'} // You can experiment with different cache modes
+      />
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    margin: 10,
+  },
+  webview: {
+    flex: 1,
+  },
+});
+
+export default Meetups;

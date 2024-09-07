@@ -1,10 +1,40 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { WebView } from 'react-native-webview';
 
-export default function NewsPage() {
+const NewsPage = () => {
+  const [isLoaded, setIsLoaded] = React.useState(false);
+
   return (
-    <View>
-      <Text>You are that of what you create.</Text>
+    <View style={styles.container}>
+      <Text style={styles.heading}>Explore Britannica News</Text>
+      <WebView
+        source={{ uri: 'https://www.britannica.com/news' }}
+        onLoadEnd={() => setIsLoaded(true)} // Use onLoadEnd instead of onLoad
+        style={styles.webview}
+        bounces={false}
+        scrollEnabled={false}
+        androidHardwareAccelerationDisabled={false}
+        contentMode={'mobile'}
+        cacheMode={'LOAD_CACHE_ELSE_NETWORK'}
+      />
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    margin: 10,
+  },
+  webview: {
+    flex: 1,
+  },
+});
+
+export default NewsPage;
